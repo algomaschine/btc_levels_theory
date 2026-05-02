@@ -1,26 +1,24 @@
-# btc_levels_theory
+# btc_levels_theory_v3 (strict online walk-forward)
 
-This package implements a falsifiable theory of support/resistance as **market memory** (Liquidity Potential Model).
+This version fixes a critical issue discovered in `output_v2.zip`: **many predictions and trades were generated on periods that were inside the training window** (in-sample), which can inflate performance.
 
-## Inputs
-- BTCUSDT 1‑minute CSV named `BTCUSDT_1min_binance.csv`
-  - Place it in the project root (same folder as `run.py`), or pass `--csv /path/to/file.csv`.
+## What v3 guarantees
+For each fold:
+1. Levels are computed **only from history up to train_end**.
+2. Training samples include only rows whose label end time `t1` is **<= train_end** (labels fully known at training time).
+3. Predictions are generated **only for the future test chunk** `(train_end, test_end]`.
+4. Backtest trades are taken **only inside the test chunk**, and trades are required to finish within the test chunk (`exit_time <= test_end`).
 
-Expected columns (flexible):
-- `open, high, low, close, volume, Date` (others ignored)
-
-## Quick start
+## Run
 ```bash
-python run.py --csv BTCUSDT_1min_binance.csv --out ./output
+python run.py --csv BTCUSDT_1min_binance.csv --out ./output_v3 --model logit
+# optional (if installed)
+python run.py --csv BTCUSDT_1min_binance.csv --out ./output_v3 --model xgb
 ```
 
-## What it produces
-- `output/levels_*.csv` discovered levels per timeframe
-- `output/hypothesis_tests.json` bootstrap test results
-- `output/model_metrics.json` out-of-sample metrics
-- `output/backtest_trades.csv` trades
-- `output/report.md` summary report
+## Validate leakage
+```bash
+python validate_output.py --outzip ./output_v3.zip
+```
 
-## Notes
-- This code avoids heavy dependencies. It uses pandas/numpy/matplotlib only.
-- If you want, you can swap in sklearn/xgboost for more powerful modeling.
+If you want smaller/more frequent updates (true online), reduce `--step_frac`.
