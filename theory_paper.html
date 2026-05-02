@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>LPM v2 Theory Paper</title>
+  <style>
+    body{font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 24px; max-width: 980px;}
+    h1,h2,h3{margin-top: 18px;}
+    pre,code{background:#f6f8fa; padding:2px 6px; border-radius:6px;}
+    .note{color:#444}
+  </style>
+  <script>
+    window.MathJax = {
+      tex: {inlineMath: [['$','$'], ['\\(','\\)']], displayMath: [['$$','$$'], ['\\[','\\]']]}
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <h1>Liquidity Potential Model (LPM) v2</h1>
+  <p class="note">This HTML version renders formulas via MathJax. The Markdown version uses $ and $$ for GitHub rendering.</p>
+
+  <h2>1) Mechanism recap</h2>
+  <p>Let $p_t$ be price (not log price). Let $\mathcal{L}_t = \{\ell_{1,t}, \dots, \ell_{N,t}\}$ be the set of levels visible at time $t$.
+  Each level has strength $w_{i,t} \ge 0$ and width $\sigma_{i,t} > 0$.</p>
+
+  <p>Liquidity potential:</p>
+  $$
+  U(p,t) = \sum_{i=1}^{N} w_{i,t}\,\exp\left(-\frac{(p-\ell_{i,t})^2}{2\sigma_{i,t}^2}\right)
+  $$
+
+  <h3>Drift implication</h3>
+  $$
+  \mu(p,t) = -\kappa\,\frac{\partial U}{\partial p}(p,t)
+  $$
+
+  <h2>2) Walk-forward levels (no look-ahead)</h2>
+  <p>In fold $k$, build levels using only history up to $T^{(k)}_{\text{train,end}}$ and apply them to the subsequent test window.</p>
+
+  <h2>3) Purged walk-forward + embargo</h2>
+  <p>With forward horizon $h$, samples overlap. Purge training samples whose label end overlaps the test period; optionally embargo after the test window.</p>
+
+  <h2>4) Fractional Differentiation</h2>
+  $$
+  \tilde p_t = \sum_{k=0}^{K} w_k(d)\,p_{t-k},\quad w_0=1,\; w_k(d) = -w_{k-1}(d)\,\frac{d-k+1}{k}
+  $$
+
+  <h2>5) Falsifiable hypotheses</h2>
+  <ul>
+    <li><b>H1</b>: conditional outcome probabilities around levels improve out-of-sample.</li>
+    <li><b>H2</b>: repeated touches reduce rejection probability (depletion).</li>
+    <li><b>H3</b>: multi-timeframe confluence improves reaction odds.</li>
+  </ul>
+</body>
+</html>
